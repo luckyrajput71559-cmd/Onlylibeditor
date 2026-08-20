@@ -6,7 +6,6 @@ import os
 import re
 import subprocess
 import base64
-import random
 
 class AIOffsetEngine:
     def __init__(self, file_path):
@@ -53,7 +52,7 @@ class AIOffsetEngine:
             )
             lines = result.stdout.split('\n')
             for i, line in enumerate(lines):
-                if f"<" in line and ">:" in line:
+                if "<" in line and ">:" in line:
                     func_start = int(line.split()[0], 16)
                     func_end = None
                     for j in range(i+1, len(lines)):
