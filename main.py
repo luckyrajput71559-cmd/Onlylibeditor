@@ -10,6 +10,7 @@ import shutil
 import time
 from ai_engine import AIOffsetEngine
 
+# ===================== CONFIG =====================
 TOKEN = "8985217938:AAFVOf4RdCNgC9c6-AQNkMOx0sAEPdIT5Nc"  # CHANGE KAR
 ADMIN_ID = 5510702228  # CHANGE KAR
 ADMIN_USERNAME = "VICKYGAMING0"
@@ -18,6 +19,7 @@ MAX_FILE_SIZE = 50 * 1024 * 1024
 bot = telebot.TeleBot(TOKEN)
 user_sessions = {}
 
+# ===================== START =====================
 @bot.message_handler(commands=['start'])
 def start(message):
     markup = types.InlineKeyboardMarkup(row_width=2)
@@ -40,6 +42,7 @@ def start(message):
         reply_markup=markup
     )
 
+# ===================== AI LIB EDITOR =====================
 @bot.message_handler(commands=['ai_lib'])
 def ai_lib_cmd(message):
     msg = bot.reply_to(message, "📤 Upload a `.so` / `.dll` / `.apk` file.\n🔹 AI will auto-detect and replace.")
@@ -95,12 +98,19 @@ def ai_lib_upload(message):
         parse_mode="Markdown"
     )
 
+# ===================== CALLBACKS =====================
 @bot.callback_query_handler(func=lambda call: True)
 def handle_callback(call):
     if call.data == "help":
-        bot.send_message(call.message.chat.id, "📋 AI Lib Editor\nUpload lib → AI detects offset → Auto replace")
+        bot.send_message(call.message.chat.id, "📋 **AI Lib Editor**\n\nUpload a lib file → AI detects offset → Auto replace\n\n🔹 Supported: .so, .dll, .apk\n🔹 Max size: 50MB")
+    
     elif call.data == "dev":
-        bot.send_message(call.message.chat.id, "👑 Developer: @VICKYGAMING0\nVersion: 13.0\nAI Engine + Deep Offset")
+        bot.send_message(call.message.chat.id, "👑 **Developer**\n\n🔹 Name: Vicky Gaming\n🔹 @VICKYGAMING0\n🔹 Version: 13.0\n🔹 AI Engine + Deep Offset\n🔹 Hidden panel decrypt")
+    
+    elif call.data == "ai_lib":
+        msg = bot.send_message(call.message.chat.id, "📤 Upload a `.so` / `.dll` / `.apk` file.\n🔹 AI will auto-detect and replace.")
+        bot.register_next_step_handler(msg, ai_lib_upload)
+    
     elif call.data.startswith("ai_edit_"):
         idx = int(call.data.split("_")[2])
         session = user_sessions.get(call.from_user.id)
@@ -117,14 +127,17 @@ def handle_callback(call):
         user_sessions[call.from_user.id] = session
         msg = bot.send_message(call.message.chat.id, f"✏️ Edit URL:\n`{old_url}`\n\nSend new URL:")
         bot.register_next_step_handler(msg, process_ai_url_edit)
+    
     elif call.data == "cancel":
         session = user_sessions.get(call.from_user.id)
         if session and "temp_dir" in session:
             shutil.rmtree(session["temp_dir"])
         user_sessions.pop(call.from_user.id, None)
         bot.send_message(call.message.chat.id, "❌ Cancelled.")
+    
     bot.answer_callback_query(call.id)
 
+# ===================== PROCESS URL EDIT =====================
 def process_ai_url_edit(message):
     user_id = message.chat.id
     session = user_sessions.get(user_id)
@@ -156,10 +169,13 @@ def process_ai_url_edit(message):
     else:
         bot.reply_to(message, f"❌ AI replace failed: {result}")
 
+# ===================== MAIN =====================
 if __name__ == "__main__":
     print("🤖 AI Lib Editor v13.0 Started!")
+    print(f"👑 Developer: @{ADMIN_USERNAME}")
     while True:
         try:
             bot.polling(none_stop=True, interval=0, timeout=60)
-        except:
+        except Exception as e:
+            print(f"⚠️ Error: {e}. Restarting...")
             time.sleep(5)
